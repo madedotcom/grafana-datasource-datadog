@@ -149,9 +149,8 @@ export class DataDogDatasource {
     return this.invokeDataDogApiRequest('/query', params)
     .then(result => {
       var dataResponse = _.map(result.series, (series, i) => {
-        var target = targets[i];
         return {
-          'target': target.alias || series.expression,
+          'target': series.expression,
           'datapoints': _.map(series.pointlist, point => {
             return [point[1], point[0]];
           })
