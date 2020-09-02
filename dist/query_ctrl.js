@@ -100,6 +100,10 @@ System.register(['lodash', './dfunc', 'app/plugins/sdk', './func_editor', './add
           _this.tagSegments = _this.target.tags.map(uiSegmentSrv.newSegment);
           _this.fixTagSegments();
 
+          _this.target.groupBys = _this.target.groupBys || [];
+          _this.groupBySegments = _this.target.groupBys.map(uiSegmentSrv.newSegment);
+          _this.fixGroupBySegments();
+
           _this.functions = [];
           _this.target.functions = _this.target.functions || [];
           _this.functions = _.map(_this.target.functions, function (func) {
@@ -156,6 +160,20 @@ System.register(['lodash', './dfunc', 'app/plugins/sdk', './func_editor', './add
             });
           }
         }, {
+          key: 'getGroupBy',
+          value: function getGroupBy(segment) {
+            var _this2 = this;
+
+            return this.datasource.tagFindQuery().then(this.uiSegmentSrv.transformToSegments(true)).then(function (results) {
+              if (segment.type !== 'plus-button') {
+                var removeSegment = _this2.uiSegmentSrv.newFake(_this2.removeText);
+                results.unshift(removeSegment);
+              }
+
+              return results;
+            });
+          }
+        }, {
           key: 'aggregationChanged',
           value: function aggregationChanged() {
             this.target.aggregation = this.aggregationSegment.value;
@@ -185,6 +203,16 @@ System.register(['lodash', './dfunc', 'app/plugins/sdk', './func_editor', './add
 
             if (!lastSegment || lastSegment.type !== 'plus-button') {
               this.tagSegments.push(this.uiSegmentSrv.newPlusButton());
+            }
+          }
+        }, {
+          key: 'fixGroupBySegments',
+          value: function fixGroupBySegments() {
+            var count = this.groupBySegments.length;
+            var lastSegment = this.groupBySegments[Math.max(count - 1, 0)];
+
+            if (!lastSegment || lastSegment.type !== 'plus-button') {
+              this.groupBySegments.push(this.uiSegmentSrv.newPlusButton());
             }
           }
         }, {
@@ -238,6 +266,25 @@ System.register(['lodash', './dfunc', 'app/plugins/sdk', './func_editor', './add
 
             this.tagSegments = _.map(this.target.tags, this.uiSegmentSrv.newSegment);
             this.fixTagSegments();
+
+            this.panelCtrl.refresh();
+          }
+        }, {
+          key: 'groupBySegmentUpdated',
+          value: function groupBySegmentUpdated(segment, index) {
+            if (segment.value === this.removeText) {
+              this.groupBySegments.splice(index, 1);
+            }
+
+            var realSegments = _.filter(this.groupBySegments, function (segment) {
+              return segment.value;
+            });
+            this.target.groupBys = realSegments.map(function (segment) {
+              return segment.value;
+            });
+
+            this.groupBySegments = _.map(this.target.groupBys, this.uiSegmentSrv.newSegment);
+            this.fixGroupBySegments();
 
             this.panelCtrl.refresh();
           }

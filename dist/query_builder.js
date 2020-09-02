@@ -35,6 +35,10 @@ System.register(['lodash', './dfunc'], function (_export, _context) {
       query += '{*}';
     }
 
+    if (target.groupBys && target.groupBys.length > 0) {
+      query += 'by{' + target.groupBys.join(',') + '}';
+    }
+
     if (target.as) {
       query += '.' + target.as + '()';
     }
@@ -54,6 +58,8 @@ System.register(['lodash', './dfunc'], function (_export, _context) {
     _.each(groupedFuncs.wraps, function (func) {
       query = func.render(query);
     });
+
+    console.log('--query--', query)
 
     return query;
   }

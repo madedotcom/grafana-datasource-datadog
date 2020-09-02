@@ -41,6 +41,10 @@ export class DataDogQueryCtrl extends QueryCtrl {
     this.tagSegments = this.target.tags.map(uiSegmentSrv.newSegment);
     this.fixTagSegments();
 
+    this.target.groupBys = this.target.groupBys || [];
+    this.groupBySegments = this.target.groupBys.map(uiSegmentSrv.newSegment);
+    this.fixGroupBySegments();
+
     this.functions = [];
     this.target.functions = this.target.functions || [];
     this.functions = _.map(this.target.functions, func => {
@@ -100,6 +104,19 @@ export class DataDogQueryCtrl extends QueryCtrl {
     });
   }
 
+  getGroupBys(segment) {
+    return this.datasource.tagFindQuery()
+    .then(this.uiSegmentSrv.transformToSegments(true))
+    .then(results => {
+      if (segment.type !== 'plus-button') {
+        let removeSegment = this.uiSegmentSrv.newFake(this.removeText);
+        results.unshift(removeSegment);
+      }
+
+      return results;
+    });
+  }
+
   aggregationChanged() {
     this.target.aggregation = this.aggregationSegment.value;
     this.panelCtrl.refresh();
@@ -125,6 +142,15 @@ export class DataDogQueryCtrl extends QueryCtrl {
 
     if (!lastSegment || lastSegment.type !== 'plus-button') {
       this.tagSegments.push(this.uiSegmentSrv.newPlusButton());
+    }
+  }
+
+  fixGroupBySegments() {
+    var count = this.groupBySegments.length;
+    var lastSegment = this.groupBySegments[Math.max(count-1, 0)];
+
+    if (!lastSegment || lastSegment.type !== 'plus-button') {
+      this.groupBySegments.push(this.uiSegmentSrv.newPlusButton());
     }
   }
 
@@ -169,6 +195,20 @@ export class DataDogQueryCtrl extends QueryCtrl {
 
     this.tagSegments = _.map(this.target.tags, this.uiSegmentSrv.newSegment);
     this.fixTagSegments();
+
+    this.panelCtrl.refresh();
+  }
+
+  groupBysSegmentUpdated(segment, index) {
+    if (segment.value === this.removeText) {
+      this.groupBySegments.splice(index, 1);
+    }
+
+    let realSegments = _.filter(this.groupBySegments, segment => segment.value);
+    this.target.groupBys = realSegments.map(segment => segment.value);
+
+    this.groupBySegments = _.map(this.target.groupBys, this.uiSegmentSrv.newSegment);
+    this.fixGroupBySegments();
 
     this.panelCtrl.refresh();
   }

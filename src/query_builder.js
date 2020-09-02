@@ -2,7 +2,7 @@ import _ from 'lodash';
 import dfunc from './dfunc';
 
 export function buildQuery(target, adhocFilters) {
-  let {aggregation, metric, tags, functions} = target;
+  let {aggregation, metric, tags, functions, groupBys} = target;
   let query = `${aggregation}:${metric}`;
 
   let functionInstances  = getFunctionInstances(functions);
@@ -25,6 +25,10 @@ export function buildQuery(target, adhocFilters) {
     query += '}';
   } else {
     query += '{*}';
+  }
+
+  if (groupBys && groupBys.length > 0) {
+    query += 'by{' + groupBys.join(',') + '}';
   }
 
   if (target.as) {
